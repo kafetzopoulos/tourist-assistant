@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tourist-assistant"
+version = "0.0.8"
+description = "AI tourist assistant for Alexandroupolis"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Sotirios Kafetzopoulos", email = "skafetzopoulos@gmail.com" }]
+
+dependencies = [
+    "openai>=1.30",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "httpx>=0.27",
+    "numpy>=1.26",
+    "torch>=2.2",
+    "transformers>=4.40",
+    "sentence-transformers>=2.7",
+    "faiss-cpu>=1.8",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+tourist-assistant = "tourist_assistant.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

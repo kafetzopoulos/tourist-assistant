@@ -1,0 +1,222 @@
+[
+  {
+    "id": "lighthouse",
+    "name": "Alexandroupolis Lighthouse",
+    "description": "Historic lighthouse at the port, one of the oldest in Greece. Offers views over the Aegean and the city waterfront.",
+    "categories": ["history", "architecture", "viewpoint"],
+    "indoor": false,
+    "lat": 40.8453,
+    "lon": 25.8761,
+    "opening_hours": {
+      "mon": "00:00-23:59",
+      "tue": "00:00-23:59",
+      "wed": "00:00-23:59",
+      "thu": "00:00-23:59",
+      "fri": "00:00-23:59",
+      "sat": "00:00-23:59",
+      "sun": "00:00-23:59"
+    },
+    "typical_duration_min": 30,
+    "source_url": "https://en.wikipedia.org/wiki/Alexandroupolis_Lighthouse"
+  },
+  {
+    "id": "archaeological_museum",
+    "name": "Archaeological Museum of Alexandroupolis",
+    "description": "Exhibits from the Neolithic to Roman periods, including finds from the ancient city of Zone and the Samothrace sanctuary.",
+    "categories": ["archaeology", "museum", "history"],
+    "indoor": true,
+    "lat": 40.8472,
+    "lon": 25.8732,
+    "opening_hours": {
+      "mon": "closed",
+      "tue": "08:30-15:00",
+      "wed": "08:30-15:00",
+      "thu": "08:30-15:00",
+      "fri": "08:30-15:00",
+      "sat": "08:30-15:00",
+      "sun": "08:30-15:00"
+    },
+    "typical_duration_min": 60,
+    "source_url": "https://www.culture.gov.gr"
+  },
+  {
+    "id": "ethnological_museum",
+    "name": "Ethnological Museum of Thrace",
+    "description": "Housed in a preserved 19th-century mansion, it showcases traditional Thracian costumes, crafts, and daily life.",
+    "categories": ["history", "museum", "architecture"],
+    "indoor": true,
+    "lat": 40.8495,
+    "lon": 25.8710,
+    "opening_hours": {
+      "mon": "closed",
+      "tue": "09:00-14:00",
+      "wed": "09:00-14:00",
+      "thu": "09:00-14:00",
+      "fri": "09:00-14:00",
+      "sat": "09:00-14:00",
+      "sun": "closed"
+    },
+    "typical_duration_min": 60,
+    "source_url": "https://www.emthrace.org"
+  },
+  {
+    "id": "cathedral",
+    "name": "Cathedral of Saint Nicholas",
+    "description": "The main Orthodox church of the city, known for its impressive iconostasis and central location.",
+    "categories": ["religious", "architecture", "history"],
+    "indoor": true,
+    "lat": 40.8481,
+    "lon": 25.8748,
+    "opening_hours": {
+      "mon": "07:00-19:00",
+      "tue": "07:00-19:00",
+      "wed": "07:00-19:00",
+      "thu": "07:00-19:00",
+      "fri": "07:00-19:00",
+      "sat": "07:00-19:00",
+      "sun": "07:00-19:00"
+    },
+    "typical_duration_min": 30,
+    "source_url": null
+  },
+  {
+    "id": "municipal_park",
+    "name": "Municipal Park of Alexandroupolis",
+    "description": "A large green space with playgrounds, a small zoo, and shaded walking paths. Popular with families.",
+    "categories": ["park", "family"],
+    "indoor": false,
+    "lat": 40.8502,
+    "lon": 25.8695,
+    "opening_hours": {
+      "mon": "00:00-23:59",
+      "tue": "00:00-23:59",
+      "wed": "00:00-23:59",
+      "thu": "00:00-23:59",
+      "fri": "00:00-23:59",
+      "sat": "00:00-23:59",
+      "sun": "00:00-23:59"
+    },
+    "typical_duration_min": 45,
+    "source_url": null
+  },
+  {
+    "id": "beach_eot",
+    "name": "EOT Beach",
+    "description": "Organized beach near the city centre with sunbeds, umbrellas, and calm waters. Suitable for families.",
+    "categories": ["beach", "family"],
+    "indoor": false,
+    "lat": 40.8388,
+    "lon": 25.8830,
+    "opening_hours": {
+      "mon": "08:00-20:00",
+      "tue": "08:00-20:00",
+      "wed": "08:00-20:00",
+      "thu": "08:00-20:00",
+      "fri": "08:00-20:00",
+      "sat": "08:00-20:00",
+      "sun": "08:00-20:00"
+    },
+    "typical_duration_min": 120,
+    "source_url": null
+  },
+  {
+    "id": "plaka_district",
+    "name": "Plaka District",
+    "description": "The old town quarter with traditional houses, narrow streets, tavernas, and local shops.",
+    "categories": ["food", "shopping", "architecture", "history"],
+    "indoor": false,
+    "lat": 40.8469,
+    "lon": 25.8755,
+    "opening_hours": {
+      "mon": "00:00-23:59",
+      "tue": "00:00-23:59",
+      "wed": "00:00-23:59",
+      "thu": "00:00-23:59",
+      "fri": "00:00-23:59",
+      "sat": "00:00-23:59",
+      "sun": "00:00-23:59"
+    },
+    "typical_duration_min": 60,
+    "source_url": null
+  },
+  {
+    "id": "dadia_forest",
+    "name": "Dadia Forest National Park",
+    "description": "A protected forest known for its birds of prey, hiking trails, and observation posts. Located about 60 km from the city.",
+    "categories": ["park", "family"],
+    "indoor": false,
+    "lat": 41.1333,
+    "lon": 26.2167,
+    "opening_hours": {
+      "mon": "08:00-17:00",
+      "tue": "08:00-17:00",
+      "wed": "08:00-17:00",
+      "thu": "08:00-17:00",
+      "fri": "08:00-17:00",
+      "sat": "08:00-17:00",
+      "sun": "08:00-17:00"
+    },
+    "typical_duration_min": 180,
+    "source_url": "https://www.dadia-np.gr"
+  },
+  {
+    "id": "ecclesiastical_museum",
+    "name": "Ecclesiastical Museum of Alexandroupolis",
+    "description": "Displays sacred icons, ecclesiastical vessels, manuscripts, and vestments reflecting the religious heritage of Western Thrace.",
+    "categories": ["museum", "religious", "history"],
+    "indoor": true,
+    "lat": 40.8480,
+    "lon": 25.8752,
+    "opening_hours": {
+      "mon": "closed",
+      "tue": "09:00-13:00",
+      "wed": "09:00-13:00",
+      "thu": "09:00-13:00",
+      "fri": "09:00-13:00",
+      "sat": "10:00-13:00",
+      "sun": "closed"
+    },
+    "typical_duration_min": 45,
+    "source_url": "http://odysseus.culture.gr/h/1/eh155.jsp?obj_id=3524"
+  },
+  {
+    "id": "evros_delta",
+    "name": "Evros Delta National Park",
+    "description": "A globally important wetland ecosystem at the border of Greece and Turkey, famous for birdwatching, boat tours, and rich biodiversity.",
+    "categories": ["park", "family"],
+    "indoor": false,
+    "lat": 40.8085,
+    "lon": 26.0295,
+    "opening_hours": {
+      "mon": "08:30-15:30",
+      "tue": "08:30-15:30",
+      "wed": "08:30-15:30",
+      "thu": "08:30-15:30",
+      "fri": "08:30-15:30",
+      "sat": "08:30-15:30",
+      "sun": "08:30-15:30"
+    },
+    "typical_duration_min": 150,
+    "source_url": "https://necca.gov.gr/en/mdpp/management-unit-of-evros-delta-and-dadia-national-parks-and-protected-areas-of-eastern-thrace/"
+  },
+  {
+    "id": "traianoupolis_springs",
+    "name": "Thermal Springs of Traianoupolis",
+    "description": "Historic thermal baths dating back to Roman times (Emperor Trajan), known for their therapeutic properties, located just outside the city.",
+    "categories": ["history", "architecture"],
+    "indoor": false,
+    "lat": 40.8750,
+    "lon": 26.0333,
+    "opening_hours": {
+      "mon": "08:00-21:00",
+      "tue": "08:00-21:00",
+      "wed": "08:00-21:00",
+      "thu": "08:00-21:00",
+      "fri": "08:00-21:00",
+      "sat": "08:00-21:00",
+      "sun": "08:00-21:00"
+    },
+    "typical_duration_min": 90,
+    "source_url": null
+  }
+]
