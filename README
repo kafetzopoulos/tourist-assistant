@@ -1,0 +1,21 @@
+1. Root Cause Investigation & Telemetry Inspection
+To trace whether the failure originated from stale source data, tool selection, or prompt construction, we will inspect the telemetry logs for the affected session using the following sequence:
+
+Step A: Tool & RAG Output Verification: Check the raw payloads returned by the museum hours API or vector database retrieval chunks for that specific venue at the time of the request. Did the data source itself state incorrect hours, or did it return that the museum closes earlier?
+
+Step B: Fallback & API Status Check: Verify if an external API timed out or threw an error, triggering a fallback mechanism that defaulted to hardcoded or outdated placeholder data.
+
+Step C: Context Construction & Prompt Assembly: Inspect the exact text compiled into the final prompt window sent to the LLM. Did the prompt correctly include the operating hours (e.g., "Closes at 17:00"), or were they truncated or misplaced?
+
+Step D: LLM Reasoning & Application Logic: Review the model's reasoning trace to see if it understood the closing time constraint but simply hallucinated the 18:00 slot anyway due to weak constraint-following.
+
+2. Reproduction
+Replay Mechanism: Use the logged session ID and user payload to replay the exact request in a staging environment using our logging trace tools.
+
+Unit Testing: Isolate the specific itinerary generation query for that city/museum combination to reproduce the scheduling conflict deterministically.
+
+3. Immediate Mitigation
+Post-Processing Schedule Validator: Implement an immediate hard-filtering step in the application logic. Before rendering any itinerary to the user, a deterministic function will cross-reference all scheduled event times against the verified opening/closing hours retrieved from tools. If a conflict is found, the system automatically shifts the activity or flags an error rather than trusting the LLM blindly.
+
+4. Long-Term Architectural Improvement
+Deterministic Constraint Enforcement: Move away from relying purely on the LLM to calculate time-based sequencing. Implement a constraint-satisfaction layer (or a deterministic scheduler component) that handles the spatial-temporal math (travel times, opening hours, weather constraints) programmatically, restricting the LLM's role strictly to natural language formatting and preference matching.
