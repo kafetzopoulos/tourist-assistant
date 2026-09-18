@@ -20,6 +20,7 @@ class RouterOutput(BaseModel):
     ]
     time_window_hours: float | None = None
     start_date: str | None = None  
+    destination: str | None = None
     preference_keywords: list[str] = Field(default_factory=list)
     reason: str | None = None
 

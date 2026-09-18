@@ -52,25 +52,24 @@ def build_documents(attractions: list[Attraction]) -> list[dict]:
     """
     docs: list[dict] = []
     for attraction in attractions:
-        # The header improves retrieval for queries about categories,
-        # indoor/outdoor, and named entities.
+        hours_txt = " ".join(f"{k} {v}" for k, v in attraction.opening_hours.items())
         header = (
             f"{attraction.name}. "
             f"Categories: {', '.join(c.value for c in attraction.categories)}. "
-            f"Indoor: {'yes' if attraction.indoor else 'no'}."
+            f"Indoor: {'yes' if attraction.indoor else 'no'}. "
+            f"Typical duration: {attraction.typical_duration_min} minutes. "
+            f"Opening hours: {hours_txt}. "
         )
         full_text = f"{header} {attraction.description}"
 
         for i, chunk in enumerate(chunk_text(full_text)):
-            docs.append(
-                {
-                    "attraction_id": attraction.id,
-                    "attraction_name": attraction.name,
-                    "chunk_index": i,
-                    "text": chunk,
-                    "source_url": attraction.source_url,
-                }
-            )
+            docs.append({
+                "attraction_id": attraction.id,
+                "attraction_name": attraction.name,
+                "chunk_index": i,
+                "text": chunk,
+                "source_url": attraction.source_url,
+            })
     return docs
 
 

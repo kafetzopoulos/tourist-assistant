@@ -25,6 +25,12 @@ from tourist_assistant.rag.retriever import get_retriever
 from tourist_assistant.tools.weather import get_current_weather, get_hourly_weather
 from tourist_assistant.security.prompt_guard import is_malicious
 
+SUPPORTED_DESTINATIONS = {
+    "alexandroupolis",
+    "alexandroupoli",
+    "αλεξανδρούπολη",
+}
+
 logger = logging.getLogger(__name__)
 
 class ConversationManager:
@@ -64,7 +70,9 @@ class ConversationManager:
             router = self._route(state, message)
             logger.info("intent=%s reason=%s", router.intent, router.reason)
 
-            if router.intent == "out_of_scope":
+            if not self._is_supported_destination(router.destination):
+                reply = self._handle_out_of_scope()
+            elif router.intent == "out_of_scope":
                 reply = self._handle_out_of_scope()
             elif router.intent == "chitchat":
                 reply = self._handle_chitchat(state, message)
@@ -129,8 +137,9 @@ class ConversationManager:
     def _handle_out_of_scope(self) -> str:
         return (
             "I can only help with travel in Alexandroupolis using trusted sources and "
-            "live data. I can't invent places or ignore my sources, but I'm happy to "
-            "suggest real attractions, plan a few hours, or check the weather."
+            "live data. I can't plan trips to other cities or invent places outside "
+            "this area. I'm happy to suggest real Alexandroupolis attractions, plan "
+            "a few hours here, or check the local weather."
         )
 
     def _handle_chitchat(self, state: ConversationState, message: str) -> str:
@@ -214,11 +223,30 @@ class ConversationManager:
 
     def _handle_factual(self, state: ConversationState, message: str) -> str:
         hits = self.retriever.search(message, top_k=settings.rag_top_k_factual)
-        context = "\n\n".join(
-            f"[{h.attraction_name}] {h.text}"
-            + (f" (source: {h.source_url})" if h.source_url else "")
-            for h in hits
-        ) or "(no relevant context found)"
+
+        logger.info("RAG factual query=%r top_k=%d", message, settings.rag_top_k_factual)
+        for i, h in enumerate(hits, 1):
+            logger.info("  %d. %s (score=%.3f) chunk=%r",
+                        i, h.attraction_name, h.score, h.text[:120])
+
+        blocks = []
+        for h in hits:
+            att = self.retriever.get_attraction(h.attraction_id)
+            if att is None:
+                continue
+            hours = "; ".join(f"{k}: {v}" for k, v in att.opening_hours.items())
+            blocks.append(
+                f"[{att.name}]\n"
+                f"Description: {att.description}\n"
+                f"Categories: {', '.join(c.value for c in att.categories)}\n"
+                f"Indoor: {'yes' if att.indoor else 'no'}\n"
+                f"Typical duration: {att.typical_duration_min} min\n"
+                f"Opening hours: {hours}\n"
+                f"Coordinates: {att.lat}, {att.lon}\n"
+                + (f"Source: {att.source_url}" if att.source_url else "Source: (none)")
+            )
+        context = "\n\n".join(blocks) or "(no relevant context found)"
+
         messages = [
             {"role": "system", "content": prompts.ANSWER_SYSTEM},
             {
@@ -226,7 +254,8 @@ class ConversationManager:
                 "content": (
                     f"RETRIEVED CONTEXT:\n{context}\n\n"
                     f"User question: {message}\n\n"
-                    "Answer only from the context. If the context doesn't cover it, say so."
+                    "Answer only from the context. Use the Opening hours field for "
+                    "any hours question. If the context doesn't cover it, say so."
                 ),
             },
         ]
@@ -238,8 +267,15 @@ class ConversationManager:
 
         query = self._build_pref_query(message, state.preferences)
         ranked = self.retriever.search_attractions(query, top_k=settings.rag_top_k_recommendation)
+
+        logger.info("RAG recommendation query=%r", query)
+
         if not ranked:
             return "I couldn't find attractions matching that. Want me to suggest a general first-time visit?"
+
+        for i, (att, score) in enumerate(ranked, 1):
+            logger.info("  %d. %s (score=%.3f) categories=%s", i, att.name, score, [c.value for c in att.categories])
+
 
         context = "\n\n".join(
             f"[{a.name}] {a.description} "
@@ -262,20 +298,69 @@ class ConversationManager:
         ]
         return chat(messages)
 
-    def _handle_plan_request(
-        self, state: ConversationState, message: str, router: RouterOutput
-    ) -> str:
+    def _handle_plan_request(self, state, message, router):
         self._update_preferences(state, message)
 
         hours = router.time_window_hours or settings.default_plan_hours
-        start = self._resolve_start_time(router)     
+        start = self._resolve_start_time(router)
         end = start + timedelta(hours=hours)
 
+        # --- 1. Retrieve candidates via RAG ---
         query = self._build_pref_query(message, state.preferences, plan=True)
         ranked = self.retriever.search_attractions(query, top_k=settings.rag_top_k_plan)
-        candidates = [a for a, _ in ranked] or self.retriever.all_attractions()
+        candidates = [a for a, _ in ranked]
 
-        weather_by_hour = get_hourly_weather(start.date())   
+        logger.info("RAG plan query=%r", query)
+        for i, (att, score) in enumerate(ranked, 1):
+            logger.info(
+                "  %d. %s (score=%.3f) categories=%s",
+                i, att.name, score, [c.value for c in att.categories],
+            )
+
+        # --- 2. Filter out disliked categories ---
+        if state.preferences.dislikes:
+            before = len(candidates)
+            removed = [
+                a.name for a in candidates
+                if any(c in state.preferences.dislikes for c in a.categories)
+            ]
+            candidates = [
+                a for a in candidates
+                if not any(c in state.preferences.dislikes for c in a.categories)
+            ]
+            logger.info(
+                "Filtered disliked categories %s: %d -> %d candidates",
+                [c.value for c in state.preferences.dislikes],
+                before, len(candidates),
+            )
+            if removed:
+                logger.info("  Removed: %s", removed)
+
+        # --- 3. Top up from the full KB if filtering left too few ---
+        if len(candidates) < 5:
+            have = {a.id for a in candidates}
+            for a in self.retriever.all_attractions():
+                if a.id in have:
+                    continue
+                if any(c in state.preferences.dislikes for c in a.categories):
+                    continue
+                candidates.append(a)
+                have.add(a.id)              # <-- important: update `have` as you append
+                if len(candidates) >= 8:
+                    break
+
+        # --- 4. Fallback: if we still have nothing, ask the user to relax ---
+        if not candidates:
+            return (
+                "I couldn't find attractions that fit your request while avoiding "
+                f"{', '.join(c.value for c in state.preferences.dislikes)}. "
+                "Want me to relax that constraint?"
+            )
+
+        # --- 5. Plan deterministically ---
+        weather_by_hour = get_hourly_weather(start.date())
+
+        logger.info("Final candidates for planner: %s", [a.name for a in candidates])
         itinerary = plan_day(
             candidates,
             start_time=start,
@@ -296,6 +381,12 @@ class ConversationManager:
 
         self._update_preferences(state, message)
         change = self._extract_change(message, state)
+
+        logger.info(
+            "Modify: action=%s target=%r value=%r reason=%r",
+            change.action, change.target, change.value, change.reason,
+        )
+
         it = state.current_itinerary
         notes: list[str] = []
 
@@ -363,6 +454,13 @@ class ConversationManager:
 
         it.feasibility_notes.extend(notes)
         state.current_itinerary = it
+
+        logger.info(
+            "Plan after modify: %s",
+            [(a.name, a.start_time.strftime("%H:%M"), a.end_time.strftime("%H:%M")) for a in it.activities],
+        )
+        logger.info("Prefs now: pace=%s transport=%s", state.preferences.pace, state.preferences.transport_mode)        
+
         return self._phrase_itinerary(it, message)
 
     # ---------- helpers ----------
@@ -378,8 +476,6 @@ class ConversationManager:
         parts = [message]
         if prefs.interests:
             parts.append("interests: " + ", ".join(c.value for c in prefs.interests))
-        if prefs.dislikes:
-            parts.append("avoid: " + ", ".join(c.value for c in prefs.dislikes))
         if prefs.has_children:
             parts.append("family friendly")
         if plan:
@@ -446,12 +542,15 @@ class ConversationManager:
         # Try exact name match first.
         for a in self.retriever.all_attractions():
             if target.lower() in a.name.lower():
+                logger.info("RAG replacement exact match: %s", a.name)
                 return a
         # Fall back to semantic search filtered by dislikes.
-        for a, _ in self.retriever.search_attractions(query, top_k=settings.rag_top_k_replacement):
+        for a, score in self.retriever.search_attractions(query, top_k=settings.rag_top_k_replacement):
             if any(c in state.preferences.dislikes for c in a.categories):
                 continue
+            logger.info("RAG replacement semantic match: %s (score=%.3f)", a.name, score)
             return a
+        logger.info("RAG replacement: no match for %r", target)
         return None
 
     def _replan(self, state: ConversationState, notes: list[str]) -> Itinerary:
@@ -460,6 +559,8 @@ class ConversationManager:
         current_ids = [a.attraction_id for a in it.activities]
         pool = [self.retriever.get_attraction(i) for i in current_ids]
         pool = [p for p in pool if p is not None]
+
+        logger.info("RAG replan pool: %s", [p.name for p in pool])
 
         weather = get_hourly_weather(it.start_time.date())
         rebuilt = plan_day(
@@ -518,6 +619,11 @@ class ConversationManager:
                 )
         return self._default_start_time()
 
+    def _is_supported_destination(self, destination: str | None) -> bool:
+        if not destination:
+            return True
+        d = destination.strip().lower()
+        return any(s in d for s in SUPPORTED_DESTINATIONS)
 
 _manager: ConversationManager | None = None
 

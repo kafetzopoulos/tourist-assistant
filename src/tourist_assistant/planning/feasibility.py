@@ -79,6 +79,13 @@ def build_itinerary(
         if attraction.id in seen:
             continue
 
+        if prefs.dislikes and any(c in prefs.dislikes for c in attraction.categories):
+            notes.append(
+                f"Skipped {attraction.name}: matches a disliked category "
+                f"({', '.join(c.value for c in attraction.categories if c in prefs.dislikes)})."
+            )
+            continue
+
         travel_min = travel_time_minutes(
             current_loc[0], current_loc[1],
             attraction.lat, attraction.lon,

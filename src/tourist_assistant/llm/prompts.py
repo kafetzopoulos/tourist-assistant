@@ -17,6 +17,10 @@ Also extract, if present:
   "YYYY-MM-DD". Resolve relative expressions ("today", "tomorrow", "next
   Saturday", "on the 20th") using the date supplied in the user message.
   If the user does not specify a date, use null.
+- destination: the city or region the user is asking about, or null if not specified.
+  If the user asks for a plan, recommendation, or factual info about a destination
+  other than Alexandroupolis (e.g. Athens, Thessaloniki, Istanbul), choose
+  "out_of_scope" and set destination to that place.  
 - any preference keywords (...)
 - Also return a short "reason" field: one sentence explaining why you chose that intent.
 
@@ -43,7 +47,11 @@ Return a JSON object with these fields (omit a field if not mentioned):
 - has_children: bool.
 - has_car: bool.
 
-Do not invent preferences. Only include what the user actually expressed or clearly implied.
+Rules:
+- Only include categories the user actually named or clearly paraphrased.
+- "without X", "no X", "avoid X", "skip X", "not interested in X" → put X in dislikes, NOT in interests.
+- Do not infer a positive interest from a negative statement. "Without museums" must produce dislikes=["museum"] and no interests.
+- Do not add "family friendly" unless the user mentions children, kids, family, or similar.
 """
 
 
